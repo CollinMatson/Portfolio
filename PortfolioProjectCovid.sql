@@ -3,9 +3,7 @@ from PortfolioProject..CovidDeaths$
 where continent is not null
 order by 3,4
 
---SELECT * 
---from PortfolioProject..CovidVaccinations$
---order by 3,4
+
 
 --Select Data that we are going to be using
 
@@ -21,7 +19,8 @@ from PortfolioProject..CovidDeaths$
 order by 1,2
 
 -- Looking at Total Cases vs Population
--- Shows what percentage of population got Covid
+-- Shows what percentage of population contracted Covid
+	
 SELECT Location, date, population, total_cases, (total_cases/population)*100 as InfectionRate
 from PortfolioProject..CovidDeaths$
 Where location like '%states%'
@@ -45,7 +44,7 @@ group by continent
 order by TotalDeathCount desc
 
 -- NOW LET'S BREAK IT DOWN BY COUNTRY
--- Showing the countries with the highest Deatch Count per Population
+-- Showing the countries with the highest Death Count per Population
 -- Had to change total_deaths from nvarchar(255) to int using CAST
 
 SELECT Location, Max(cast(total_deaths as int)) as TotalDeathCount
@@ -57,6 +56,7 @@ order by TotalDeathCount desc
 -- GLOBAL NUMBERS
 
 -- First Query shows new cases across the world by date
+	
 SELECT date, SUM(new_cases)--total_cases, total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
 from PortfolioProject..CovidDeaths$
 Where continent is not null
@@ -64,6 +64,7 @@ group by date
 order by 1,2
 
 -- Second Query shows new cases per day compared to the number of deaths on that day and its percentage
+	
 SELECT date, SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, sum(cast(new_deaths as int))/Sum(new_cases)*100 as DeathPercentage
 from PortfolioProject..CovidDeaths$
 Where continent is not null
@@ -71,7 +72,8 @@ group by date
 order by 1,2
 
 -- Third Query we comment out the date to show overall numbers, and death rate
--- Shows 150,574,977 cases and 3,180,206 deats for a death rate of 2.11%
+-- Shows 150,574,977 cases and 3,180,206 deaths for a death rate of 2.11%
+	
 SELECT SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, sum(cast(new_deaths as int))/Sum(new_cases)*100 as DeathPercentage
 from PortfolioProject..CovidDeaths$
 Where continent is not null
@@ -87,8 +89,9 @@ Join PortfolioProject..CovidVaccinations$ vac
 	and dea.date = vac.date
 where dea.continent is not null
 order by 2,3
-t
+
 -- Gives a running count of vaccinations over time using 
+	
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
 , SUM(CAST(vac.new_vaccinations as int)) OVER (Partition by dea.location Order by dea.location, dea.date) as RollingPeopleVaccinated
 from PortfolioProject..CovidDeaths$ dea
@@ -101,7 +104,7 @@ order by 2,3
 
 -- USE CTE to create a table showing a rolling count of people vaccinated and matching percentage of a countries population that is vaccinated
 
-With PopvsVac (continent, location, date, population, new_vaccinations, RollingPeopleVaccinated)
+;With PopvsVac (continent, location, date, population, new_vaccinations, RollingPeopleVaccinated)
 as 
 (
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
@@ -119,6 +122,7 @@ from PopvsVac
 
 -- TEMP TABLE
 -- Added Drop Table incase I ever want to make alterations
+	
 Drop Table if exists #PercentPopulationVaccinated
 Create Table #PercentPopulationVaccinated
 (
@@ -143,7 +147,7 @@ Select *, (rollingpeoplevaccinated/population)*100 as PercentPopulationVaccinate
 from #PercentPopulationVaccinated
 
 -- Creating View to store data for later visualizations
-
+GO
 Create View PercentPopulationVaccinated as 
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
 , SUM(CAST(vac.new_vaccinations as int)) OVER (Partition by dea.location Order by dea.location, dea.date) as RollingPeopleVaccinated
